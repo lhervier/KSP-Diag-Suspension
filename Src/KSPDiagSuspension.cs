@@ -33,9 +33,14 @@ namespace com.github.lhervier.ksp.diag.suspension
         private static bool windowVisible = true;
         private static Rect windowRect = new Rect(WINDOW_X, WINDOW_Y, WINDOW_WIDTH, 0f);
 
+        // Whether the static-grip anchors of KSP-Fix-SuspensionBounce are drawn under the wheels (window toggle,
+        // off at first). Static: the choice holds from one flight scene to the next.
+        private static bool drawAnchors;
+
         private readonly List<WheelReading> wheels = new List<WheelReading>();
         private readonly SpeedTracker speed = new SpeedTracker();
         private readonly Recorder recorder = new Recorder();
+        private AnchorDrawing anchorDrawing;
         private VesselBalance balance;
         private Vessel vessel;
         private double readTime = double.NaN;
@@ -63,6 +68,23 @@ namespace com.github.lhervier.ksp.diag.suspension
         private void OnDestroy()
         {
             recorder.Stop();
+            if (anchorDrawing != null)
+            {
+                anchorDrawing.Destroy();
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (!drawAnchors || !AnchorReader.Available || balance == null)
+            {
+                return;
+            }
+            if (anchorDrawing == null)
+            {
+                anchorDrawing = new AnchorDrawing();
+            }
+            anchorDrawing.Draw(readTime, wheels);
         }
 
         private void Update()
@@ -112,6 +134,10 @@ namespace com.github.lhervier.ksp.diag.suspension
             readTime = Time.fixedTime;
             speed.Add(v, readTime);
             balance = VesselBalance.Compute(v, wheels);
+            if (anchorDrawing != null)
+            {
+                anchorDrawing.NoteStep(readTime, wheels);
+            }
             recorder.Write(readTime, v, speed, balance, wheels);
         }
 
@@ -192,7 +218,16 @@ namespace com.github.lhervier.ksp.diag.suspension
                     { "regime", w.Regime },
                     { "angularVelocity", Num(w.AngularVelocity) },
                     { "radiusM", Num(w.RadiusM) },
-                    { "rimSpeedMmS", Num(w.RimSpeedMmS) }
+                    { "rimSpeedMmS", Num(w.RimSpeedMmS) },
+                    { "anchor", w.HasAnchor },
+                    { "anchorOffsetX", w.HasAnchor ? Num(w.AnchorOffset.x) : null },
+                    { "anchorOffsetY", w.HasAnchor ? Num(w.AnchorOffset.y) : null },
+                    { "anchorForceX", w.HasAnchor ? Num(w.AnchorForce.x) : null },
+                    { "anchorForceY", w.HasAnchor ? Num(w.AnchorForce.y) : null },
+                    { "anchorGain", w.HasAnchor ? Num(w.AnchorGain) : null },
+                    { "anchorFade", w.HasAnchor ? Num(w.AnchorFade) : null },
+                    { "anchorReseated", w.HasAnchor && w.AnchorReseated },
+                    { "anchorState", w.AnchorState }
                 });
             }
             result["wheels"] = list;
@@ -214,12 +249,18 @@ namespace com.github.lhervier.ksp.diag.suspension
             windowRect = GUILayout.Window(WINDOW_ID, windowRect, DrawWindow, "KSP Diag - Suspension");
         }
 
-        private static readonly float[] COLUMNS = { 210f, 50f, 85f, 50f, 50f, 60f, 60f, 50f, 55f, 60f, 60f, 80f, 75f };
+        private static readonly float[] COLUMNS =
+        {
+            210f, 50f, 85f, 50f, 50f, 60f, 60f, 50f, 55f, 60f, 60f, 80f, 75f, 100f, 100f, 55f
+        };
         private static readonly string[] HEADERS =
         {
             "Part", "Ground", "Compression", "Spring", "Damper", "Load kN", "Sized kN", "μ adh", "Cap kN",
-            "Tyre kN", "Used", "Regime", "Rim mm/s"
+            "Tyre kN", "Used", "Regime", "Rim mm/s", "Anchor mm", "Anchor kN", "Anchor"
         };
+
+        // The anchor columns, shown only when KSP-Fix-SuspensionBounce is loaded: the window widens for them.
+        private const int ANCHOR_COLUMNS = 3;
 
         private void DrawWindow(int id)
         {
@@ -243,8 +284,9 @@ namespace com.github.lhervier.ksp.diag.suspension
                     + Fmt(balance.TangentialWeightKn, "0.00") + " kN (x" + Fmt(balance.GripMargin, "0.00")
                     + "); tyre forces applied " + Fmt(balance.TireForceKn, "0.00") + " kN");
 
+                int columns = AnchorReader.Available ? HEADERS.Length : HEADERS.Length - ANCHOR_COLUMNS;
                 GUILayout.BeginHorizontal();
-                for (int i = 0; i < HEADERS.Length; i++)
+                for (int i = 0; i < columns; i++)
                 {
                     GUILayout.Label(HEADERS[i], GUILayout.Width(COLUMNS[i]));
                 }
@@ -267,6 +309,15 @@ namespace com.github.lhervier.ksp.diag.suspension
                     Cell(10, w.Grounded ? Fmt(w.UsedPct, "0.0") + " %" : "-");
                     Cell(11, w.Regime);
                     Cell(12, Fmt(w.RimSpeedMmS, "0.00"));
+                    if (columns > 13)
+                    {
+                        // Offset (mm) and force (kN) of the anchor, sideways then forward.
+                        Cell(13, !w.HasAnchor ? "-" : Fmt(1000.0 * w.AnchorOffset.x, "0.0") + ", "
+                            + Fmt(1000.0 * w.AnchorOffset.y, "0.0"));
+                        Cell(14, !w.HasAnchor ? "-" : Fmt(w.AnchorForce.x, "0.000") + ", "
+                            + Fmt(w.AnchorForce.y, "0.000"));
+                        Cell(15, w.AnchorState);
+                    }
                     GUILayout.EndHorizontal();
                 }
                 GUILayout.EndScrollView();
@@ -296,6 +347,12 @@ namespace com.github.lhervier.ksp.diag.suspension
             {
                 GUILayout.Label(System.IO.Path.GetFileName(recorder.FilePath) + ", " + recorder.Lines + " lines"
                     + (recorder.Recording ? " (recording)" : ""));
+            }
+            GUILayout.FlexibleSpace();
+            if (AnchorReader.Available)
+            {
+                drawAnchors = GUILayout.Toggle(drawAnchors, "Draw anchors (arrow "
+                    + AnchorDrawing.FORCE_SCALE.ToString("0.#", CultureInfo.InvariantCulture) + " m/kN)");
             }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();

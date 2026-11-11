@@ -40,7 +40,14 @@ namespace com.github.lhervier.ksp.diag.suspension
                 "(usedPct), the regime (regime: air, holds up to the cap, skids fwd or skids side beyond it after " +
                 "the larger component), the rotation of the wheel on its axle in rad/s (angularVelocity), its " +
                 "radius in m (radiusM) and the speed of its tread around the axle in mm/s (rimSpeedMmS: what the " +
-                "vessel would move at if the wheel rolled without slipping).")]
+                "vessel would move at if the wheel rolled without slipping). With KSP-Fix-SuspensionBounce " +
+                "installed, its static-grip anchor (anchor: whether the wheel has one at that step, the fields below " +
+                "null otherwise): the way the contact travelled from the anchor point in m, sideways and forward " +
+                "(anchorOffsetX, anchorOffsetY), the force the anchor adds to the tyre in kN, same axes " +
+                "(anchorForceX, anchorForceY), its force per metre of offset in kN/m, 0 while off (anchorGain), how " +
+                "much it holds, 1 in full, 0 let go (anchorFade), whether it was moved at that step because the tyre " +
+                "did not pass its force on (anchorReseated), and its state (anchorState: holds, fading, off, " +
+                "reseat, or - without one).")]
         internal static object Read()
         {
             return Mod().Read();

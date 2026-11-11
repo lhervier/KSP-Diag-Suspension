@@ -64,6 +64,45 @@ namespace com.github.lhervier.ksp.diag.suspension
         internal Vector3 SuspensionAxis;
         internal Vector3 TireForceWorld;
 
+        // The static-grip anchor of KSP-Fix-SuspensionBounce, when that mod is installed (AnchorReader): the way the
+        // contact travelled from the anchor point (m) and the force the anchor added to the tyre (kN), x sideways,
+        // y forward; force per metre of offset (kN/m, 0 while off); how much it held (1 in full, 0 let go); whether it
+        // was moved at this step because the tyre did not pass its force on.
+        internal bool HasAnchor;
+        internal Vector2 AnchorOffset;
+        internal Vector2 AnchorForce;
+        internal float AnchorGain;
+        internal float AnchorFade;
+        internal bool AnchorReseated;
+
+        // Contact point and tyre axes in the frame of the part, for drawing the anchor wherever the floating origin
+        // has moved the part since.
+        internal Vector3 ContactLocal;
+        internal Vector3 SidewaysLocal;
+        internal Vector3 ForwardLocal;
+
+        /// <summary>The anchor's state: "-" without one, "reseat" at a step it was moved, "off" while its gain is 0,
+        /// "holds" at full fade, "fading" in between.</summary>
+        internal string AnchorState
+        {
+            get
+            {
+                if (!HasAnchor)
+                {
+                    return "-";
+                }
+                if (AnchorReseated)
+                {
+                    return "reseat";
+                }
+                if (AnchorGain <= 0f)
+                {
+                    return "off";
+                }
+                return AnchorFade >= 1f ? "holds" : "fading";
+            }
+        }
+
         internal bool Bottomed { get { return Grounded && Compression >= BOTTOMED; } }
 
         internal bool Extended { get { return Grounded && Compression <= EXTENDED; } }
@@ -133,7 +172,12 @@ namespace com.github.lhervier.ksp.diag.suspension
             {
                 r.Normal = state.hit.normal;
                 r.TireForceWorld = state.hit.forwardDir * r.TireForce.y + state.hit.sidewaysDir * r.TireForce.x;
+                Transform frame = wheelBase.part.transform;
+                r.ContactLocal = frame.InverseTransformPoint(state.hit.point);
+                r.SidewaysLocal = frame.InverseTransformDirection(state.hit.sidewaysDir);
+                r.ForwardLocal = frame.InverseTransformDirection(state.hit.forwardDir);
             }
+            AnchorReader.Read(state, r);
             return r;
         }
     }
