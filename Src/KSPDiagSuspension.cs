@@ -246,12 +246,20 @@ namespace com.github.lhervier.ksp.diag.suspension
                 return;
             }
             GUI.skin = HighLogic.Skin;
+            if (cellStyle == null)
+            {
+                cellStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, wordWrap = false };
+            }
             windowRect = GUILayout.Window(WINDOW_ID, windowRect, DrawWindow, "KSP Diag - Suspension");
         }
 
+        // The table's cells and headers: smaller than the skin's labels, on one line, so that a part's title does not
+        // wrap and the list shows more parts. Made on the first OnGUI, once the skin exists.
+        private static GUIStyle cellStyle;
+
         private static readonly float[] COLUMNS =
         {
-            210f, 50f, 85f, 50f, 50f, 60f, 60f, 50f, 55f, 60f, 60f, 80f, 75f, 100f, 100f, 55f
+            230f, 50f, 85f, 50f, 50f, 60f, 60f, 50f, 55f, 60f, 60f, 80f, 75f, 100f, 100f, 55f
         };
         private static readonly string[] HEADERS =
         {
@@ -288,7 +296,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                 GUILayout.BeginHorizontal();
                 for (int i = 0; i < columns; i++)
                 {
-                    GUILayout.Label(HEADERS[i], GUILayout.Width(COLUMNS[i]));
+                    GUILayout.Label(HEADERS[i], cellStyle, GUILayout.Width(COLUMNS[i]));
                 }
                 GUILayout.EndHorizontal();
                 listScroll = GUILayout.BeginScrollView(listScroll, GUILayout.Height(LIST_HEIGHT));
@@ -369,7 +377,7 @@ namespace com.github.lhervier.ksp.diag.suspension
 
         private static void Cell(int column, string text)
         {
-            GUILayout.Label(text, GUILayout.Width(COLUMNS[column]));
+            GUILayout.Label(text, cellStyle, GUILayout.Width(COLUMNS[column]));
         }
 
         private static string Fmt(double v, string format)
