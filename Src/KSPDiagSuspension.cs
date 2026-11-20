@@ -33,7 +33,7 @@ namespace com.github.lhervier.ksp.diag.suspension
         private static bool windowVisible = true;
         private static Rect windowRect = new Rect(WINDOW_X, WINDOW_Y, WINDOW_WIDTH, 0f);
 
-        // Whether the static-grip anchors of KSP-Fix-SuspensionBounce are drawn under the wheels (window toggle,
+        // Whether the static-grip anchors of KSP-Fix-WheelCreep are drawn under the wheels (window toggle,
         // off at first). Static: the choice holds from one flight scene to the next.
         private static bool drawAnchors;
 
@@ -259,7 +259,7 @@ namespace com.github.lhervier.ksp.diag.suspension
             "Tyre kN", "Used", "Regime", "Rim mm/s", "Anchor mm", "Anchor kN", "Anchor"
         };
 
-        // The anchor columns, shown only when KSP-Fix-SuspensionBounce is loaded: the window widens for them.
+        // The anchor columns, shown only when KSP-Fix-WheelCreep is loaded: the window widens for them.
         private const int ANCHOR_COLUMNS = 3;
 
         private void DrawWindow(int id)

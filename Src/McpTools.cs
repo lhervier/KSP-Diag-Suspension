@@ -40,7 +40,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                 "(usedPct), the regime (regime: air, holds up to the cap, skids fwd or skids side beyond it after " +
                 "the larger component), the rotation of the wheel on its axle in rad/s (angularVelocity), its " +
                 "radius in m (radiusM) and the speed of its tread around the axle in mm/s (rimSpeedMmS: what the " +
-                "vessel would move at if the wheel rolled without slipping). With KSP-Fix-SuspensionBounce " +
+                "vessel would move at if the wheel rolled without slipping). With KSP-Fix-WheelCreep " +
                 "installed, its static-grip anchor (anchor: whether the wheel has one at that step, the fields below " +
                 "null otherwise): the way the contact travelled from the anchor point in m, sideways and forward " +
                 "(anchorOffsetX, anchorOffsetY), the force the anchor adds to the tyre in kN, same axes " +

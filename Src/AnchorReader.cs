@@ -6,14 +6,14 @@ using VehiclePhysics;
 namespace com.github.lhervier.ksp.diag.suspension
 {
     /// <summary>
-    /// Reads the static-grip anchors of KSP-Fix-SuspensionBounce (TyreStaticGrip.TryGetAnchor) by reflection, when that
+    /// Reads the static-grip anchors of KSP-Fix-WheelCreep (TyreStaticGrip.TryGetAnchor) by reflection, when that
     /// mod is installed: this mod does not depend on it. Without it, or with a version that has no such method, no
     /// wheel has an anchor, and that is said once in the log.
     /// </summary>
     internal static class AnchorReader
     {
         private const string LOG_PREFIX = "[KSPDiagSuspension] ";
-        private const string TYPE_NAME = "com.github.lhervier.ksp.fix.suspensionbounce.TyreStaticGrip";
+        private const string TYPE_NAME = "com.github.lhervier.ksp.fix.wheelcreep.TyreStaticGrip";
         private const string METHOD_NAME = "TryGetAnchor";
 
         private delegate bool TryGetAnchorFn(VehicleBase.WheelState wheel, out Vector2 offset, out Vector2 force,
@@ -22,7 +22,7 @@ namespace com.github.lhervier.ksp.diag.suspension
         private static bool resolved;
         private static TryGetAnchorFn tryGetAnchor;
 
-        /// <summary>Whether KSP-Fix-SuspensionBounce, with its anchor accessor, is loaded.</summary>
+        /// <summary>Whether KSP-Fix-WheelCreep, with its anchor accessor, is loaded.</summary>
         internal static bool Available
         {
             get
@@ -53,7 +53,7 @@ namespace com.github.lhervier.ksp.diag.suspension
             catch (Exception e)
             {
                 // Never again: one error in the log, not one per wheel and per step.
-                Debug.LogError(LOG_PREFIX + "reading the anchors of KSP-Fix-SuspensionBounce failed, stopped: " + e);
+                Debug.LogError(LOG_PREFIX + "reading the anchors of KSP-Fix-WheelCreep failed, stopped: " + e);
                 tryGetAnchor = null;
                 return;
             }
@@ -94,8 +94,8 @@ namespace com.github.lhervier.ksp.diag.suspension
                 break;
             }
             Debug.Log(LOG_PREFIX + (tryGetAnchor != null
-                ? "KSP-Fix-SuspensionBounce found: its static-grip anchors are read"
-                : "no KSP-Fix-SuspensionBounce anchor accessor: anchors are not shown"));
+                ? "KSP-Fix-WheelCreep found: its static-grip anchors are read"
+                : "no KSP-Fix-WheelCreep anchor accessor: anchors are not shown"));
         }
     }
 }

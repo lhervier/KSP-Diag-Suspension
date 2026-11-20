@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace com.github.lhervier.ksp.diag.suspension
 {
     /// <summary>
-    /// Draws the static-grip anchors of KSP-Fix-SuspensionBounce under the wheels on the ground: a cross at the anchor
+    /// Draws the static-grip anchors of KSP-Fix-WheelCreep under the wheels on the ground: a cross at the anchor
     /// point, a line from the contact to it, and an arrow from the contact for the force the anchor adds to the tyre,
     /// <see cref="FORCE_SCALE"/> metres per kN. Colour: green while it holds in full, orange while it fades, grey while
     /// off, red for <see cref="RESEAT_HOLD"/> seconds of game time after a step it was moved. Lines of one pixel, seen

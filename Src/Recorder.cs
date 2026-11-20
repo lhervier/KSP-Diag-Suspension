@@ -9,7 +9,7 @@ namespace com.github.lhervier.ksp.diag.suspension
     /// <summary>
     /// Writes what the mod reads at each physics step into a CSV file, one line per suspension, the columns of
     /// the vessel repeated on each: from Start to Stop, one file per recording, in the PluginData folder of the
-    /// mod. Decimal point, comma separator. The anchor columns (KSP-Fix-SuspensionBounce's static grip, x sideways,
+    /// mod. Decimal point, comma separator. The anchor columns (KSP-Fix-WheelCreep's static grip, x sideways,
     /// y forward) are empty when the wheel has no anchor at that step.
     /// </summary>
     internal sealed class Recorder

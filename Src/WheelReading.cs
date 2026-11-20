@@ -64,7 +64,7 @@ namespace com.github.lhervier.ksp.diag.suspension
         internal Vector3 SuspensionAxis;
         internal Vector3 TireForceWorld;
 
-        // The static-grip anchor of KSP-Fix-SuspensionBounce, when that mod is installed (AnchorReader): the way the
+        // The static-grip anchor of KSP-Fix-WheelCreep, when that mod is installed (AnchorReader): the way the
         // contact travelled from the anchor point (m) and the force the anchor added to the tyre (kN), x sideways,
         // y forward; force per metre of offset (kN/m, 0 while off); how much it held (1 in full, 0 let go); whether it
         // was moved at this step because the tyre did not pass its force on.
