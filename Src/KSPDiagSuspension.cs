@@ -12,7 +12,7 @@ namespace com.github.lhervier.ksp.diag.suspension
     /// spring was sized for, and the tyre force against the largest the tyre gives while it holds; and, for the
     /// whole vessel, the share of its weight the suspensions carry and the tyre grip against the pull of the
     /// slope. Slipping is judged by forces only, never by a speed. It also shows the speed of the vessel over
-    /// the ground in mm/s, for the record. A window shows all this; a CSV file records it step by step. Nothing
+    /// the ground in mm/s and its vertical speed, for the record. A window shows all this; a CSV file records it step by step. Nothing
     /// is changed in the game.
     /// </summary>
     [KSPAddon(KSPAddon.Startup.Flight, false)]
@@ -172,6 +172,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                 { "yawRateDegS", Num(speed.YawRateDegS) },
                 { "lateralMS", Num(speed.LateralMS) },
                 { "driftDeg", Num(speed.DriftDeg) },
+                { "verticalMS", Num(speed.VerticalMS) },
                 { "recording", recorder.Recording },
                 { "csv", recorder.FilePath ?? "" },
                 { "csvLines", recorder.Lines }
@@ -282,7 +283,8 @@ namespace com.github.lhervier.ksp.diag.suspension
                 GUILayout.Label(vessel.vesselName + ": speed " + Fmt(speed.SpeedMmS, "0.00") + " mm/s over "
                     + SpeedTracker.WINDOW.ToString("0.#", CultureInfo.InvariantCulture) + " s, turning "
                     + Fmt(speed.YawRateDegS, "0.00") + " °/s, sideways " + Fmt(speed.LateralMS, "0.000")
-                    + " m/s (drift " + Fmt(speed.DriftDeg, "0.0") + "°), weight "
+                    + " m/s (drift " + Fmt(speed.DriftDeg, "0.0") + "°), vertical "
+                    + Fmt(speed.VerticalMS, "0.00") + " m/s, weight "
                     + Fmt(balance.WeightKn, "0.00") + " kN, slope " + Fmt(balance.SlopeDeg, "0.0") + "°");
                 GUILayout.Label("On the ground " + balance.Grounded + "/" + balance.Wheels + ", bottomed out "
                     + balance.Bottomed + ". Suspensions carry " + Fmt(balance.SupportedKn, "0.00") + " of "

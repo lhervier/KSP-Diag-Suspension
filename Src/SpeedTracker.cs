@@ -5,8 +5,8 @@ namespace com.github.lhervier.ksp.diag.suspension
     /// <summary>
     /// Speed of a vessel over the ground, precise to a hundredth of mm/s: how far its root part moved in the frame
     /// of the body (latitude, longitude, altitude, in double), over the last second of physics; how fast it turns
-    /// around the local vertical; and how much it moves sideways, against the heading the navball shows. Shown and
-    /// recorded only: nothing else in this mod uses them.
+    /// around the local vertical; how much it moves sideways, against the heading the navball shows; and its
+    /// vertical speed. Shown and recorded only: nothing else in this mod uses them.
     /// </summary>
     internal sealed class SpeedTracker
     {
@@ -43,6 +43,14 @@ namespace com.github.lhervier.ksp.diag.suspension
         /// </summary>
         internal double DriftDeg { get; private set; } = double.NaN;
 
+        /// <summary>
+        /// Vertical speed of the vessel, in m/s, positive up along the local vertical of the body: the game's own,
+        /// the one its vertical speed gauge shows. The game computes it once per physics step, before the physics
+        /// moves the vessel: read after a step, it is the speed the vessel had at the start of that step. NaN
+        /// without a vessel.
+        /// </summary>
+        internal double VerticalMS { get; private set; } = double.NaN;
+
         // Speed under which the drift angle is not given, in m/s: at rest, its direction is noise.
         internal const double DRIFT_MIN_SPEED = 0.5;
 
@@ -57,6 +65,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                 YawRateDegS = double.NaN;
                 LateralMS = double.NaN;
                 DriftDeg = double.NaN;
+                VerticalMS = double.NaN;
                 if (v == null || v.rootPart == null)
                 {
                     return;
@@ -73,6 +82,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                     * UtilMath.Rad2Deg
                 : double.NaN;
             Drift(v, (Vector3d)FlightGlobals.getUpAxis(body, world));
+            VerticalMS = v.verticalSpeed;
             double lat = body.GetLatitude(world) * UtilMath.Deg2Rad;
             double lon = body.GetLongitude(world) * UtilMath.Deg2Rad;
             double r = body.Radius + body.GetAltitude(world);
@@ -108,6 +118,7 @@ namespace com.github.lhervier.ksp.diag.suspension
             YawRateDegS = double.NaN;
             LateralMS = double.NaN;
             DriftDeg = double.NaN;
+            VerticalMS = double.NaN;
         }
 
         /// <summary>Sets the lateral speed and the drift angle of the vessel against the heading.</summary>

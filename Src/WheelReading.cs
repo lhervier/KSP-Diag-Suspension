@@ -18,7 +18,8 @@ namespace com.github.lhervier.ksp.diag.suspension
         internal Part Part;
         internal bool Grounded;
 
-        /// <summary>Contact depth over the travel: 0 fully extended, 1 bottomed out (it may go beyond).</summary>
+        /// <summary>Contact depth over the travel: 0 fully extended, 1 bottomed out (it may go beyond). Measured
+        /// from where the wheel really sits, its collider's centre offset included (<see cref="TrueCompression"/>).</summary>
         internal float Compression;
         internal float TravelM;
 
@@ -128,6 +129,25 @@ namespace com.github.lhervier.ksp.diag.suspension
             }
         }
 
+        /// <summary>
+        /// Compression of a grounded wheel from the contact depth of <paramref name="state"/>, measured from where
+        /// the wheel really is: 0 fully extended, 1 on its end-stop.
+        /// </summary>
+        private static float TrueCompression(VPWheelCollider collider, VehicleBase.WheelState state)
+        {
+            float travel = collider.lastRuntimeSuspensionTravel;
+            if (!(travel > 0f))
+            {
+                return state.suspensionCompression;
+            }
+            // The game places PhysX's wheel at the collider's centre offset, shifted along the travel by the
+            // suspension anchor, but its contact depth (and the compression it derives from it) counts the anchor's
+            // shift only. A part that sets a centre offset (the LT-1 leg, 0.119 m below its transform) would read
+            // that much less compressed: short of its end-stop while it rests on it. The depth is measured along the
+            // collider's up axis, where only the offset's y counts.
+            return (state.contactDepth - collider.center.y) / travel;
+        }
+
         /// <summary>Reads a wheel; null when its wheel controller is not set up yet.</summary>
         internal static WheelReading Read(ModuleWheelBase wheelBase)
         {
@@ -147,7 +167,7 @@ namespace com.github.lhervier.ksp.diag.suspension
             WheelReading r = new WheelReading();
             r.Part = wheelBase.part;
             r.Grounded = state.grounded;
-            r.Compression = r.Grounded ? state.suspensionCompression : 0f;
+            r.Compression = r.Grounded ? TrueCompression(collider, state) : 0f;
             r.TravelM = collider.runtimeSuspensionTravel;
             r.Spring = collider.springRate;
             r.Damper = collider.damperRate;

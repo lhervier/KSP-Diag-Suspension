@@ -15,7 +15,7 @@ namespace com.github.lhervier.ksp.diag.suspension
     internal sealed class Recorder
     {
         private const string HEADER =
-            "time_s,vessel,speed_mm_s,yaw_rate_deg_s,lateral_m_s,drift_deg,weight_kN,slope_deg,normal_weight_kN,tangential_weight_kN,supported_kN," +
+            "time_s,vessel,speed_mm_s,yaw_rate_deg_s,lateral_m_s,drift_deg,vertical_m_s,weight_kN,slope_deg,normal_weight_kN,tangential_weight_kN,supported_kN," +
             "supported_pct,cap_sum_kN,tire_force_sum_kN,grip_margin,wheels,grounded,bottomed," +
             "part_id,part,is_grounded,compression,travel_m,is_bottomed,is_extended,spring_kN_m,damper_kN_s_m," +
             "load_kN,friction_load_kN,assumed_load_kN,grip,friction_model,adherent_coef,cap_kN," +
@@ -75,7 +75,8 @@ namespace com.github.lhervier.ksp.diag.suspension
             string common = string.Join(",", new[]
             {
                 F(time, "0.0000"), Q(vessel.vesselName), F(motion.SpeedMmS, "0.00"), F(motion.YawRateDegS, "0.000"),
-                F(motion.LateralMS, "0.0000"), F(motion.DriftDeg, "0.00"), F(b.WeightKn), F(b.SlopeDeg, "0.000"),
+                F(motion.LateralMS, "0.0000"), F(motion.DriftDeg, "0.00"), F(motion.VerticalMS, "0.0000"),
+                F(b.WeightKn), F(b.SlopeDeg, "0.000"),
                 F(b.NormalWeightKn), F(b.TangentialWeightKn), F(b.SupportedKn), F(b.SupportedPct, "0.00"),
                 F(b.CapKn), F(b.TireForceKn), F(b.GripMargin, "0.000"),
                 I(b.Wheels), I(b.Grounded), I(b.Bottomed)

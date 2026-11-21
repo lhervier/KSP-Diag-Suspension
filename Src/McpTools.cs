@@ -21,7 +21,9 @@ namespace com.github.lhervier.ksp.diag.suspension
                 "positive to the right seen from above (yawRateDegS), its speed over the ground across the heading the " +
                 "navball shows in m/s, positive to the right (lateralMS), and the angle between that heading and " +
                 "its horizontal speed in degrees, positive when it moves to the right of where it points, none " +
-                "under 0.5 m/s (driftDeg) (all three shown only too), weight (weightKn), angle " +
+                "under 0.5 m/s (driftDeg), its vertical speed in m/s, positive up, the game's own as its gauge " +
+                "shows it, computed by the game at the start of the step (verticalMS) (all four shown only too), " +
+                "weight (weightKn), angle " +
                 "of the mean ground normal under the wheels to the vertical (slopeDeg), the part of the weight pressing on the ground (normalWeightKn) and pulling " +
                 "down the slope (tangentialWeightKn), the sum of the suspension forces along the ground normal " +
                 "(supportedKn) and its share of normalWeightKn (supportedPct), the sum of the adherent tyre caps " +
@@ -30,8 +32,9 @@ namespace com.github.lhervier.ksp.diag.suspension
                 "bottomed out (bottomed); whether a CSV is being recorded (recording), its path (csv) and lines " +
                 "(csvLines). Per suspension (wheels): part title, name and flight id (part, partName, partId), " +
                 "whether it touches the ground (grounded), contact depth over the travel (compression, 0 fully " +
-                "extended, 1 bottomed out), the travel in m (travelM), bottomed (compression >= 0.99) and " +
-                "extended (<= 0.01, on the ground), spring in kN/m and damper in kN.s/m (spring, damper), the " +
+                "extended, 1 bottomed out, measured from where the wheel really sits: the game's own figure leaves " +
+                "out the centre offset of the wheel collider, which this adds back), the travel in m (travelM), " +
+                "bottomed (compression >= 0.99) and extended (<= 0.01, on the ground), spring in kN/m and damper in kN.s/m (spring, damper), the " +
                 "suspension force (loadKn), the load of the tyre model (frictionLoadKn: plus extra downforce, " +
                 "floored), the load the spring was sized for (assumedLoadKn, sprungMassGravity, 0.5 t floor " +
                 "included), ground grip (grip), friction model, adherent coefficient (adherentCoef, multipliers " +
