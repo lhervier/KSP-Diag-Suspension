@@ -14,43 +14,9 @@ namespace com.github.lhervier.ksp.diag.suspension
     internal static class McpTools
     {
         [McpTool("suspension_read",
-            "Reads what the window of KSP Diag - Suspension shows for the active vessel, as computed by the game " +
-                "at the last physics step (forces in kN). Vessel: name (vessel), game time of the reading (time), " +
-                "speed over the ground in mm/s averaged over the last second (speedMmS, shown only, used for " +
-                "nothing else), how fast it turns around the local vertical in degrees per second at that step, " +
-                "positive to the right seen from above (yawRateDegS), its speed over the ground across the heading the " +
-                "navball shows in m/s, positive to the right (lateralMS), and the angle between that heading and " +
-                "its horizontal speed in degrees, positive when it moves to the right of where it points, none " +
-                "under 0.5 m/s (driftDeg), its vertical speed in m/s, positive up, the game's own as its gauge " +
-                "shows it, computed by the game at the start of the step (verticalMS) (all four shown only too), " +
-                "weight (weightKn), angle " +
-                "of the mean ground normal under the wheels to the vertical (slopeDeg), the part of the weight pressing on the ground (normalWeightKn) and pulling " +
-                "down the slope (tangentialWeightKn), the sum of the suspension forces along the ground normal " +
-                "(supportedKn) and its share of normalWeightKn (supportedPct), the sum of the adherent tyre caps " +
-                "(capKn), the size of the sum of the tyre forces applied (tireForceKn), capKn over " +
-                "tangentialWeightKn (gripMargin), how many suspensions touch the ground (grounded) and are " +
-                "bottomed out (bottomed); whether a CSV is being recorded (recording), its path (csv) and lines " +
-                "(csvLines). Per suspension (wheels): part title, name and flight id (part, partName, partId), " +
-                "whether it touches the ground (grounded), contact depth over the travel (compression, 0 fully " +
-                "extended, 1 bottomed out, measured from where the wheel really sits: the game's own figure leaves " +
-                "out the centre offset of the wheel collider, which this adds back), the travel in m (travelM), " +
-                "bottomed (compression >= 0.99) and extended (<= 0.01, on the ground), spring in kN/m and damper in kN.s/m (spring, damper), the " +
-                "suspension force (loadKn), the load of the tyre model (frictionLoadKn: plus extra downforce, " +
-                "floored), the load the spring was sized for (assumedLoadKn, sprungMassGravity, 0.5 t floor " +
-                "included), ground grip (grip), friction model, adherent coefficient (adherentCoef, multipliers " +
-                "included), largest tyre force while it holds (capKn = frictionLoadKn x grip x adherentCoef), the " +
-                "tyre force applied sideways and forward (tireSideKn, tireFwdKn) and its size over capKn in % " +
-                "(usedPct), the regime (regime: air, holds up to the cap, skids fwd or skids side beyond it after " +
-                "the larger component), the rotation of the wheel on its axle in rad/s (angularVelocity), its " +
-                "radius in m (radiusM) and the speed of its tread around the axle in mm/s (rimSpeedMmS: what the " +
-                "vessel would move at if the wheel rolled without slipping). With KSP-Fix-WheelCreep " +
-                "installed, its static-grip anchor (anchor: whether the wheel has one at that step, the fields below " +
-                "null otherwise): the way the contact travelled from the anchor point in m, sideways and forward " +
-                "(anchorOffsetX, anchorOffsetY), the force the anchor adds to the tyre in kN, same axes " +
-                "(anchorForceX, anchorForceY), its force per metre of offset in kN/m, 0 while off (anchorGain), how " +
-                "much it holds, 1 in full, 0 let go (anchorFade), whether it was moved at that step because the tyre " +
-                "did not pass its force on (anchorReseated), and its state (anchorState: holds, fading, off, " +
-                "reseat, or - without one).")]
+            "Reads what KSP Diag - Suspension shows for the active vessel at the last physics step (kN): speeds, " +
+            "weight, slope, support and grip totals, CSV state; per suspension: contact, compression, spring, " +
+            "damper, loads, tyre cap, forces, regime, wheel rotation, and anchor fields when published.")]
         internal static object Read()
         {
             return Mod().Read();
@@ -105,6 +71,60 @@ namespace com.github.lhervier.ksp.diag.suspension
         {
             KSPDiagSuspension.WindowVisible = visible;
             return new Dictionary<string, object> { { "visible", KSPDiagSuspension.WindowVisible } };
+        }
+
+        [McpTool("suspension_show_graph",
+            "Shows or hides the graph window of KSP Diag - Suspension, as its Graph button does: each " +
+            "suspension's compression at each physics step (stop line at 1). Optionally sets its span (seconds, 1 " +
+            "to 30) and position (x, y). Returns visible, seconds, paused, x, y, width, height.")]
+        internal static object ShowGraph(bool visible, double seconds = 0, double x = double.NaN,
+            double y = double.NaN)
+        {
+            SuspensionGraph.Visible = visible;
+            if (seconds > 0)
+            {
+                SuspensionGraph.Seconds = seconds;
+            }
+            Rect rect = SuspensionGraph.WindowRect;
+            if (!double.IsNaN(x))
+            {
+                rect.x = (float)x;
+            }
+            if (!double.IsNaN(y))
+            {
+                rect.y = (float)y;
+            }
+            SuspensionGraph.WindowRect = rect;
+            KSPDiagSuspension mod = UnityEngine.Object.FindObjectOfType<KSPDiagSuspension>();
+            return new Dictionary<string, object>
+            {
+                { "visible", SuspensionGraph.Visible },
+                { "seconds", SuspensionGraph.Seconds },
+                { "paused", mod != null && mod.Graph.Paused },
+                { "x", (double)rect.x },
+                { "y", (double)rect.y },
+                { "width", (double)rect.width },
+                { "height", (double)rect.height }
+            };
+        }
+
+        [McpTool("suspension_pause_graph",
+            "Pauses the graph of KSP Diag - Suspension, as its button Pause does: it keeps what it shows and leaves " +
+            "the new physics steps out; or lets it go on (paused false). With clear, it first forgets every step " +
+            "kept. Returns whether it is paused (paused) and how many steps it keeps (steps).")]
+        internal static object PauseGraph(bool paused, bool clear = false)
+        {
+            KSPDiagSuspension mod = Mod();
+            if (clear)
+            {
+                mod.Graph.Clear();
+            }
+            mod.Graph.Paused = paused;
+            return new Dictionary<string, object>
+            {
+                { "paused", mod.Graph.Paused },
+                { "steps", (double)mod.Graph.Steps }
+            };
         }
 
         private static KSPDiagSuspension Mod()

@@ -12,7 +12,8 @@ namespace com.github.lhervier.ksp.diag.suspension
     /// spring was sized for, and the tyre force against the largest the tyre gives while it holds; and, for the
     /// whole vessel, the share of its weight the suspensions carry and the tyre grip against the pull of the
     /// slope. Slipping is judged by forces only, never by a speed. It also shows the speed of the vessel over
-    /// the ground in mm/s and its vertical speed, for the record. A window shows all this; a CSV file records it step by step. Nothing
+    /// the ground in mm/s and its vertical speed, for the record. A window shows all this; a CSV file records it step by step;
+    /// a graph in a window of its own draws each suspension's compression at each step over the last seconds. Nothing
     /// is changed in the game.
     /// </summary>
     [KSPAddon(KSPAddon.Startup.Flight, false)]
@@ -40,6 +41,7 @@ namespace com.github.lhervier.ksp.diag.suspension
         private readonly List<WheelReading> wheels = new List<WheelReading>();
         private readonly SpeedTracker speed = new SpeedTracker();
         private readonly Recorder recorder = new Recorder();
+        private readonly SuspensionGraph graph = new SuspensionGraph();
         private AnchorDrawing anchorDrawing;
         private VesselBalance balance;
         private Vessel vessel;
@@ -60,6 +62,8 @@ namespace com.github.lhervier.ksp.diag.suspension
 
         internal Recorder Recorder { get { return recorder; } }
 
+        internal SuspensionGraph Graph { get { return graph; } }
+
         private void Start()
         {
             StartCoroutine(ReadAfterPhysics());
@@ -68,6 +72,7 @@ namespace com.github.lhervier.ksp.diag.suspension
         private void OnDestroy()
         {
             recorder.Stop();
+            graph.Destroy();
             if (anchorDrawing != null)
             {
                 anchorDrawing.Destroy();
@@ -139,6 +144,7 @@ namespace com.github.lhervier.ksp.diag.suspension
                 anchorDrawing.NoteStep(readTime, wheels);
             }
             recorder.Write(readTime, v, speed, balance, wheels);
+            graph.Add(readTime, v, wheels);
         }
 
         /// <summary>Starts recording into a new CSV file; returns its path.</summary>
@@ -242,7 +248,8 @@ namespace com.github.lhervier.ksp.diag.suspension
 
         private void OnGUI()
         {
-            if (!windowVisible)
+            // The graph has a window of its own, which Mod+F6 leaves as it is.
+            if (!windowVisible && !SuspensionGraph.Visible)
             {
                 return;
             }
@@ -251,7 +258,11 @@ namespace com.github.lhervier.ksp.diag.suspension
             {
                 cellStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, wordWrap = false };
             }
-            windowRect = GUILayout.Window(WINDOW_ID, windowRect, DrawWindow, "KSP Diag - Suspension");
+            if (windowVisible)
+            {
+                windowRect = GUILayout.Window(WINDOW_ID, windowRect, DrawWindow, "KSP Diag - Suspension");
+            }
+            graph.OnGUI(cellStyle);
         }
 
         // The table's cells and headers: smaller than the skin's labels, on one line, so that a part's title does not
@@ -359,6 +370,8 @@ namespace com.github.lhervier.ksp.diag.suspension
                     + (recorder.Recording ? " (recording)" : ""));
             }
             GUILayout.FlexibleSpace();
+            SuspensionGraph.Visible = GUILayout.Toggle(SuspensionGraph.Visible, "Graph", "Button",
+                GUILayout.Width(80f));
             if (AnchorReader.Available)
             {
                 drawAnchors = GUILayout.Toggle(drawAnchors, "Draw anchors (arrow "
